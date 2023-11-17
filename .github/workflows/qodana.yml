@@ -1,0 +1,38 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow
+
+name: "Qodana"
+
+on:  # yamllint disable-line rule:truthy
+    pull_request: null
+    push:
+        branches:
+        - "3.x"
+
+permissions: {}  # yamllint disable-line rule:braces
+
+concurrency:
+    group: "${{ github.workflow }}-${{ github.ref }}"
+    cancel-in-progress: true
+
+jobs:
+    qodana:
+        name: "Qodana Cloud"
+        runs-on: "ubuntu-22.04"
+        timeout-minutes: 10
+        permissions:
+            checks: "write"
+            contents: "write"
+            pull-requests: "write"
+        steps:
+        -
+            name: "Checkout repository"
+            uses: "actions/checkout@v3.6.0"
+            with:
+                # Check out the pull request commit, not the merge commit
+                ref: "${{ github.event.pull_request.head.sha }}"
+                fetch-depth: 0
+        -
+            name: "Run analysis"
+            uses: "JetBrains/qodana-action@v2023.2"
+            env:
+                QODANA_TOKEN: "${{ secrets.QODANA_TOKEN }}"
